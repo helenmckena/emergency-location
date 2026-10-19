@@ -1,0 +1,5 @@
+{
+  "appId": "com.example.app",
+  "appName": "emergency-frontend",
+  "webDir": "dist"
+}

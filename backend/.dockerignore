@@ -1,0 +1,14 @@
+secrets/
+env/
+media/
+logs/
+.venv
+.idea
+.ruff_cache
+.mypy_cache
+compose.yml
+.gitignore
+.dockerignore
+Dockerfile
+README.md
+

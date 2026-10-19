@@ -1,0 +1,50 @@
+[project]
+name = "emergency-location"
+version = "0.1.0"
+description = "EmergencyLocation helps emergency service operators quickly obtain a caller’s location and visual information. The operator sends a temporary link, and the caller can share their precise geolocation and photos of the surrounding area without installing an app or creating an account."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "alembic>=1.18.5",
+    "asyncpg>=0.31.0",
+    "fastapi>=0.139.2",
+    "httpx>=0.28.1",
+    "loguru>=0.7.3",
+    "phonenumbers>=9.0.34",
+    "pillow>=12.3.0",
+    "pillow-heif>=1.5.0",
+    "pydantic-settings>=2.14.2",
+    "pytest>=9.1.1",
+    "pytest-mock>=3.15.1",
+    "python-multipart>=0.0.32",
+    "redis>=8.1.0",
+    "sqlalchemy[asyncio]>=2.0.51",
+    "twilio>=9.10.9",
+    "uvicorn>=0.51.0",
+    "websockets>=17.0.1",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.3.0",
+    "ruff>=0.15.22",
+]
+
+[tool.uv]
+package = false
+
+[tool.mypy]
+explicit_package_bases = true
+strict = true
+python_version = '3.13'
+exclude= [
+    'sms_test\.py',
+    'wa_test\.py'
+]
+mypy_path = "app/"
+[[tool.mypy.overrides]]
+module = "twilio.*"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+pythonpath = [".", "app", "test"]

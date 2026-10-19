@@ -1,0 +1,47 @@
+services:
+  db:
+    image: docker.io/library/postgres:18
+    container_name: emergency-location-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB__NAME}
+      POSTGRES_USER: ${DB__USER}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - db_data:/var/lib/postgresql
+
+  redis:
+    image: docker.io/library/redis:7
+    container_name: emergency-location-redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+
+  backend:
+    image: docker.io/smilekundev/emergency-location:latest
+    container_name: backend
+    ports:
+      - "127.0.0.1:8080:8080"
+    env_file:
+      - env/.env.template
+      - env/.env
+      - env/.env.prod
+    secrets:
+      - source: db_password
+    volumes:
+      - /var/app/media:/backend/media
+      - /var/app/logs:/backend/logs
+
+secrets:
+  db_password:
+    file: secrets/db_password.txt
+
+volumes:
+  db_data:
+    name: emergency_location_postgres_data
+  redis_data:
+    name: emergency_location_redis_data
