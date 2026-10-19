@@ -451,7 +451,11 @@ export default function App() {
           <span>{t.github}</span>
         </a>
 
+<<<<<<< HEAD
         <button type="button" className="flink" aria-haspopup="dialog" onClick={() => setModal('contacts')}>
+=======
+        <button className="flink" onClick={() => setModal('contacts')}>
+>>>>>>> 1af4c62b17ada60ad4b0c399dba8f0f7d05df974
           <span className="flink-icon">
             <svg width="16" height="13" viewBox="0 0 20 16" fill="none" stroke="currentColor" strokeWidth="1.5">
               <rect x="1" y="1" width="18" height="14" rx="2"/>
@@ -468,17 +472,26 @@ export default function App() {
 
       {modal && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
+<<<<<<< HEAD
           <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="footer-modal-title" onClick={(e) => e.stopPropagation()}>
             <div className="modal-title" id="footer-modal-title">
+=======
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-title">
+>>>>>>> 1af4c62b17ada60ad4b0c399dba8f0f7d05df974
               {modal === 'privacy' ? t.privacyTitle : t.contactsTitle}
             </div>
             <div className="modal-body">
               {modal === 'privacy' ? t.privacyBody : (
                 <>
                   {t.contactsBody}
+<<<<<<< HEAD
                   <div style={{ marginTop: 10, fontWeight: 600 }}>
                     Telegram: <a href="https://t.me/jemapellezhasmin" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>@jemapellezhasmin</a>
                   </div>
+=======
+                  <div style={{ marginTop: 10, fontWeight: 600 }}>contact@emergency-location.dev</div>
+>>>>>>> 1af4c62b17ada60ad4b0c399dba8f0f7d05df974
                 </>
               )}
             </div>
