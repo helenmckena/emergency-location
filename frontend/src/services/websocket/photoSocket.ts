@@ -1,4 +1,5 @@
 import { connectReconnectingSocket } from './reconnectingSocket';
+import { DEMO_MODE, demoSubscribePhoto } from '../demo';
 
 export interface PhotoSocketMessage {
   id: number;
@@ -21,6 +22,10 @@ export function connectPhotoSocket(
     photo: PhotoSocketMessage,
   ) => void,
 ) {
+  if (DEMO_MODE) {
+    return demoSubscribePhoto(requestId, onPhoto);
+  }
+
   return connectReconnectingSocket<PhotoSocketMessage>({
     url: `${getWebSocketBaseUrl()}/api/v1/photo/photo-shares/ws/${requestId}`,
     label: 'Photo',

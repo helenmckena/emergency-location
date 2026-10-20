@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 import { locationApi } from '../../services/api/location';
+import { DEMO_MODE, demoCreateRequest } from '../../services/demo';
 import {
   isValidPhone,
   normalizePhone,
@@ -70,7 +71,8 @@ export function RequestForm({
       return;
     }
 
-    if (!isValidPhone(trimmedPhone)) {
+    // В демо-режиме принимаем любой номер: SMS всё равно не отправляются.
+    if (!DEMO_MODE && !isValidPhone(trimmedPhone)) {
       setInvalidPhone(true);
       setError(false);
       return;
@@ -81,10 +83,24 @@ export function RequestForm({
       setError(false);
       setInvalidPhone(false);
 
-      const request =
-        await locationApi.createShareRequest(
-          normalizePhone(trimmedPhone),
+      const normalizedPhone = isValidPhone(trimmedPhone)
+        ? normalizePhone(trimmedPhone)
+        : trimmedPhone;
+
+      let request;
+
+      try {
+        request = await locationApi.createShareRequest(
+          normalizedPhone,
         );
+      } catch (apiError) {
+        // Сервер отключён: в демо-режиме ошибку не показываем.
+        if (!DEMO_MODE) {
+          throw apiError;
+        }
+
+        request = demoCreateRequest(normalizedPhone);
+      }
 
       onRequestCreated(
         request.id,

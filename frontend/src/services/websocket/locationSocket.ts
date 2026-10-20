@@ -1,4 +1,5 @@
 import { connectReconnectingSocket } from './reconnectingSocket';
+import { DEMO_MODE, demoSubscribeLocation } from '../demo';
 
 export interface LocationSocketMessage {
   id: number;
@@ -22,6 +23,10 @@ export function connectLocationSocket(
     location: LocationSocketMessage,
   ) => void,
 ) {
+  if (DEMO_MODE) {
+    return demoSubscribeLocation(requestId, onLocation);
+  }
+
   return connectReconnectingSocket<LocationSocketMessage>({
     url: `${getWebSocketBaseUrl()}/api/v1/location/location-shares/ws/${requestId}`,
     label: 'Location',

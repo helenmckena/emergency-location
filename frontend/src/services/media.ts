@@ -1,4 +1,8 @@
 export function resolveMediaUrl(url: string) {
+  if (/^(data|blob):/.test(url)) {
+    return url;
+  }
+
   const apiUrl =
     import.meta.env.VITE_API_URL ||
     'http://localhost:8080';

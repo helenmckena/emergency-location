@@ -10,6 +10,7 @@ import { photoApi } from '../../services/api/photo';
 import { connectLocationSocket } from '../../services/websocket/locationSocket';
 import { connectPhotoSocket } from '../../services/websocket/photoSocket';
 import { resolveMediaUrl } from '../../services/media';
+import { DEMO_MODE } from '../../services/demo';
 import { PhotoLightbox } from '../../components/photos/PhotoLightbox';
 import {
   ExternalLinkIcon,
@@ -160,6 +161,20 @@ export function OperatorRequestPage() {
                   : t.operator.locationWaiting}
             </span>
           </header>
+
+          {DEMO_MODE && (
+            <p className="demo-banner">
+              Демо-режим: SMS не отправляются, сервер отключён.{' '}
+              <a
+                href={`/request/${numericRequestId}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Открыть страницу пострадавшего
+              </a>{' '}
+              (в новой вкладке) и поделиться геопозицией.
+            </p>
+          )}
 
           <div className="operator-request__map">
             <MapPanel

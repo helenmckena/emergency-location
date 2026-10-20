@@ -1,4 +1,9 @@
 import { apiClient } from './client';
+import {
+  DEMO_MODE,
+  demoGetPhotos,
+  demoUploadPhoto,
+} from '../demo';
 import { resolveMediaUrl } from '../media';
 import type { Photo, PhotoList } from '../../types';
 
@@ -9,6 +14,10 @@ export const photoApi = {
     requestId: number,
     file: File,
   ): Promise<Photo> {
+    if (DEMO_MODE) {
+      return demoUploadPhoto(requestId, file);
+    }
+
     const formData = new FormData();
     formData.append('photo', file);
 
@@ -31,6 +40,10 @@ export const photoApi = {
   async getAll(
     requestId: number,
   ): Promise<PhotoList> {
+    if (DEMO_MODE) {
+      return demoGetPhotos(requestId);
+    }
+
     const response = await apiClient.get<PhotoList>(
       `${PHOTO_SHARES_PATH}/${requestId}/photos`,
     );
