@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { GithubIcon, MailIcon } from '../ui/icons';
+import { useLocale } from '../../app/providers/LocaleContext';
+import { landingContent } from '../../i18n/landing';
 
 const TELEGRAM = 'jemapellezhasmin';
 const EMAIL = 'z_tursynova@kbtu.kz';
 
 export function Footer() {
   const [contactsOpen, setContactsOpen] = useState(false);
+  const { locale } = useLocale();
+  const footerText = landingContent[locale].footer;
 
   return (
     <>
@@ -16,7 +20,7 @@ export function Footer() {
         </div>
 
         <div className="app-footer__subtitle">
-          сервис оперативной передачи геоданных
+          {footerText.subtitle}
         </div>
       </div>
 
@@ -36,11 +40,11 @@ export function Footer() {
           onClick={() => setContactsOpen(true)}
         >
           <MailIcon className="app-footer__link-icon" />
-          Контакты
+          {footerText.contacts}
         </button>
 
         <a href="#privacy">
-          Политика конфиденциальности
+          {footerText.privacy}
         </a>
       </nav>
     </footer>

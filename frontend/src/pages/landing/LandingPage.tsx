@@ -1,202 +1,153 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Header } from '../../components/layout/Header';
 import { Footer } from '../../components/layout/Footer';
 import { PinIcon } from '../../components/ui/icons';
+import { useLocale } from '../../app/providers/LocaleContext';
+import { landingContent } from '../../i18n/landing';
 
-const PROBLEMS = [
-  {
-    title: 'Только слова',
-    text: 'Оператор не может точно установить место звонящего со слов.',
-  },
-  {
-    title: 'Стресс',
-    text: 'Пострадавший не всегда может объяснить, где он находится.',
-  },
-  {
-    title: 'Лишнее трение',
-    text: 'Установка приложения, регистрация и пароль — барьер в критический момент.',
-  },
-];
-
-const STEPS = [
-  {
-    title: 'Оператор вводит номер',
-    text: 'Оператор экстренной службы вводит номер телефона человека, которому нужна помощь.',
-  },
-  {
-    title: 'Отправляет ссылку',
-    text: 'В один клик: Telegram, WhatsApp или SMS с телефона оператора. Это бесплатно.',
-  },
-  {
-    title: 'Человек делится местом',
-    text: 'Он открывает ссылку в браузере и одним нажатием отправляет геопозицию и фото.',
-  },
-  {
-    title: 'Точка на карте',
-    text: 'Оператор видит, где находится человек, в реальном времени и направляет бригаду.',
-  },
-];
-
-const COMPARE_ROWS: [string, boolean, boolean, boolean, boolean][] = [
-  ['Без своего приложения', true, true, false, true],
-  ['Без регистрации и пароля', true, true, false, false],
-  ['Фото пострадавшего', true, false, true, true],
-  ['Обновления в реальном времени', true, false, true, true],
-  ['Карта у оператора в браузере', true, false, false, false],
-];
-
-function Mark({ value }: { value: boolean }) {
+function LineIcon({ children }: { children: ReactNode }) {
   return (
-    <span className={value ? 'landing__yes' : 'landing__no'}>
-      {value ? '✓' : '✗'}
-    </span>
+    <svg
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
   );
 }
 
+const PROBLEM_ICONS = [
+  <LineIcon key="chat">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </LineIcon>,
+  <LineIcon key="alert">
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+    <line x1="12" y1="9" x2="12" y2="13" />
+    <line x1="12" y1="17" x2="12.01" y2="17" />
+  </LineIcon>,
+  <LineIcon key="lock">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </LineIcon>,
+];
+
+// колонки: мы, звонок, приложения служб, мессенджеры
+const COMPARE: boolean[][] = [
+  [true, true, false, true],
+  [true, true, false, false],
+  [true, false, true, true],
+  [true, false, true, true],
+  [true, false, false, false],
+];
+
 export function LandingPage() {
+  const { locale } = useLocale();
+  const c = landingContent[locale];
+
   return (
-    <div className="page">
+    <div className="page lp-page">
       <Header />
 
-      <main className="landing">
-        <section className="landing__hero">
-          <span className="landing__badge">
-            Для служб 112, скорой помощи и МЧС
-          </span>
+      <main className="lp">
+        <section className="lp-hero">
+          <div className="lp-hero__text">
+            <h1 className="lp-title">
+              {c.titleA} <span>{c.titleB}</span>
+            </h1>
 
-          <PinIcon className="landing__hero-icon" />
+            <p className="lp-lead">{c.text}</p>
 
-          <h1 className="landing__title">
-            Узнайте, где человек, <span>за секунды</span>
-          </h1>
+            <div className="lp-actions">
+              <Link to="/operator" className="lp-button">
+                {c.open}
+              </Link>
 
-          <p className="landing__lead">
-            Пострадавший нажимает на ссылку и делится геолокацией и фото.
-            Оператор видит его на карте в реальном времени, без установки
-            приложения и регистрации.
-          </p>
+              <a href="#how" className="lp-button lp-button--ghost">
+                {c.how}
+              </a>
+            </div>
+          </div>
 
-          <div className="landing__actions">
-            <Link to="/operator" className="landing__button">
-              Открыть сервис
-            </Link>
-
-            <a href="#contact" className="landing__button landing__button--ghost">
-              Запустить пилот
-            </a>
+          <div className="lp-visual" aria-hidden="true">
+            <div className="lp-map">
+              <span className="lp-pin">
+                <span className="lp-pin__pulse" />
+                <PinIcon className="lp-pin__icon" />
+              </span>
+              <span className="lp-coords">43.2380, 76.9450</span>
+              <span className="lp-chip">{c.chip}</span>
+            </div>
           </div>
         </section>
 
-        <section className="landing__section">
-          <h2 className="landing__heading">Проблема</h2>
-          <p className="landing__text">
-            В критический момент слов недостаточно. Каждая потерянная
-            минута увеличивает риск.
-          </p>
+        <section className="lp-section">
+          <h2 className="lp-heading">{c.problemTitle}</h2>
+          <p className="lp-text">{c.problemText}</p>
 
-          <ul className="landing__features">
-            {PROBLEMS.map((item) => (
-              <li key={item.title} className="landing__card">
-                <h3 className="landing__card-title">{item.title}</h3>
-                <p className="landing__card-text">{item.text}</p>
+          <ul className="lp-grid lp-grid--3">
+            {c.problems.map((item, index) => (
+              <li key={item.title} className="lp-card">
+                <span className="lp-icon">{PROBLEM_ICONS[index]}</span>
+                <h3 className="lp-card__title">{item.title}</h3>
+                <p className="lp-card__text">{item.text}</p>
               </li>
             ))}
           </ul>
         </section>
 
-        <section className="landing__section" id="how">
-          <h2 className="landing__heading">Как это работает</h2>
+        <section className="lp-section" id="how">
+          <h2 className="lp-heading">{c.stepsTitle}</h2>
 
-          <ol className="landing__steps">
-            {STEPS.map((step, index) => (
-              <li key={step.title} className="landing__card">
-                <span className="landing__step-number">{index + 1}</span>
-                <h3 className="landing__card-title">{step.title}</h3>
-                <p className="landing__card-text">{step.text}</p>
+          <ol className="lp-grid lp-grid--4">
+            {c.steps.map((step, index) => (
+              <li key={step.title} className="lp-card">
+                <span className="lp-step">{index + 1}</span>
+                <h3 className="lp-card__title">{step.title}</h3>
+                <p className="lp-card__text">{step.text}</p>
               </li>
             ))}
           </ol>
         </section>
 
-        <section className="landing__section">
-          <h2 className="landing__heading">Чем мы лучше</h2>
-          <p className="landing__text">
-            У пострадавшего нет барьера входа: достаточно нажать на ссылку.
-          </p>
+        <section className="lp-section">
+          <h2 className="lp-heading">{c.compareTitle}</h2>
+          <p className="lp-text">{c.compareText}</p>
 
-          <div className="landing__table-wrap">
-            <table className="landing__table">
+          <div className="lp-table-wrap">
+            <table className="lp-table">
               <thead>
                 <tr>
-                  <th>Критерий</th>
-                  <th className="landing__us">Emergency Location</th>
-                  <th>Голосовой звонок</th>
-                  <th>Приложения служб</th>
-                  <th>Мессенджеры</th>
+                  {c.columns.map((column, index) => (
+                    <th key={column} className={index === 1 ? 'lp-us' : undefined}>
+                      {column}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {COMPARE_ROWS.map(([label, ...marks]) => (
-                  <tr key={label}>
-                    <td>{label}</td>
-                    {marks.map((mark, index) => (
-                      <td
-                        key={index}
-                        className={index === 0 ? 'landing__us' : undefined}
-                      >
-                        <Mark value={mark} />
+                {c.rows.map((row, rowIndex) => (
+                  <tr key={row}>
+                    <td>{row}</td>
+                    {COMPARE[rowIndex].map((value, index) => (
+                      <td key={index} className={index === 0 ? 'lp-us' : undefined}>
+                        <span className={value ? 'lp-yes' : 'lp-no'}>
+                          {value ? '✓' : '✗'}
+                        </span>
                       </td>
                     ))}
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        </section>
-
-        <section className="landing__section">
-          <div className="landing__price">
-            <div>
-              <h2 className="landing__heading">Тариф</h2>
-              <p className="landing__price-note">
-                Подписка для диспетчерского центра
-              </p>
-              <p className="landing__price-value">
-                $200 <span>в месяц</span>
-              </p>
-            </div>
-
-            <div className="landing__price-free">
-              <strong>Первый пилот бесплатно</strong>
-              <p>Подключаем один центр и вместе настраиваем работу.</p>
-            </div>
-          </div>
-        </section>
-
-        <section className="landing__cta" id="contact">
-          <h2 className="landing__heading">Давайте проведём пилот</h2>
-
-          <p className="landing__text">
-            Ищем первую диспетчерскую службу и партнёров. Напишите нам.
-          </p>
-
-          <div className="landing__actions">
-            <a
-              className="landing__button"
-              href="https://t.me/jemapellezhasmin"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Telegram
-            </a>
-
-            <a
-              className="landing__button landing__button--ghost"
-              href="mailto:z_tursynova@kbtu.kz"
-            >
-              z_tursynova@kbtu.kz
-            </a>
           </div>
         </section>
       </main>
