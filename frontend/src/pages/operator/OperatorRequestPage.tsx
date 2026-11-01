@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
 import {
   useLocation as useRouterLocation,
   useParams,
@@ -223,23 +222,6 @@ export function OperatorRequestPage() {
                 Loading...
               </div>
             )}
-          </div>
-
-          <div className="operator-request__victim">
-            <QRCodeSVG value={victimLink} size={112} />
-
-            <div>
-              <strong>Ссылка для пострадавшего</strong>
-              <p className="operator-request__victim-link">{victimLink}</p>
-              <p className="operator-request__victim-note">
-                Если сообщение не пришло, наведите камеру телефона на QR-код
-                или откройте ссылку:
-                {' '}
-                <a href={victimLink} target="_blank" rel="noreferrer">
-                  открыть
-                </a>
-              </p>
-            </div>
           </div>
 
           <div className="operator-request__share">

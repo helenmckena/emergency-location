@@ -1,8 +1,12 @@
-import { useState } from 'react';
-import { GithubIcon, MailIcon } from '../ui/icons';
+import { useEffect, useState } from 'react';
+import { GithubIcon, MailIcon, TelegramIcon } from '../ui/icons';
 import { useLocale } from '../../app/providers/LocaleContext';
 import { landingContent } from '../../i18n/landing';
 
+// Адрес вашего репозитория: задайте VITE_GITHUB_URL (Vercel → Environment Variables)
+const GITHUB_URL =
+  import.meta.env.VITE_GITHUB_URL ??
+  'https://github.com/helenmckena/emergency-location';
 const TELEGRAM = 'jemapellezhasmin';
 const EMAIL = 'z_tursynova@kbtu.kz';
 
@@ -10,6 +14,15 @@ export function Footer() {
   const [contactsOpen, setContactsOpen] = useState(false);
   const { locale } = useLocale();
   const footerText = landingContent[locale].footer;
+
+  useEffect(() => {
+    if (!contactsOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setContactsOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [contactsOpen]);
 
   return (
     <>
@@ -26,7 +39,7 @@ export function Footer() {
 
       <nav className="app-footer__links">
         <a
-          href="https://github.com/smileBlueRose/emergency-location"
+          href={GITHUB_URL}
           target="_blank"
           rel="noreferrer"
         >
@@ -50,44 +63,52 @@ export function Footer() {
     </footer>
 
     {contactsOpen && (
-      <div
-        className="contacts-modal__overlay"
-        onClick={() => setContactsOpen(false)}
-      >
+      <div className="ct-overlay" onClick={() => setContactsOpen(false)}>
         <div
-          className="contacts-modal"
+          className="ct-modal"
           role="dialog"
           aria-modal="true"
           aria-labelledby="contacts-title"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 id="contacts-title" className="contacts-modal__title">
-            Контакты
-          </h2>
-          <p className="contacts-modal__text">
-            По всем вопросам работы сервиса пишите нам:
-          </p>
-          <div className="contacts-modal__row">
-            <span>Telegram:</span>
-            <a
-              href={`https://t.me/${TELEGRAM}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              @{TELEGRAM}
-            </a>
-          </div>
-          <div className="contacts-modal__row">
-            <span>Email:</span>
-            <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
-          </div>
           <button
             type="button"
-            className="contacts-modal__close"
+            className="ct-close"
+            aria-label={footerText.close}
             onClick={() => setContactsOpen(false)}
           >
-            Закрыть
+            ×
           </button>
+
+          <h2 id="contacts-title" className="ct-title">
+            {footerText.contacts}
+          </h2>
+          <p className="ct-text">{footerText.contactsText}</p>
+
+          <a
+            className="ct-item"
+            href={`https://t.me/${TELEGRAM}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span className="ct-item__icon ct-item__icon--tg">
+              <TelegramIcon />
+            </span>
+            <span className="ct-item__body">
+              <small>Telegram</small>
+              <b>@{TELEGRAM}</b>
+            </span>
+          </a>
+
+          <a className="ct-item" href={`mailto:${EMAIL}`}>
+            <span className="ct-item__icon">
+              <MailIcon />
+            </span>
+            <span className="ct-item__body">
+              <small>Email</small>
+              <b>{EMAIL}</b>
+            </span>
+          </a>
         </div>
       </div>
     )}

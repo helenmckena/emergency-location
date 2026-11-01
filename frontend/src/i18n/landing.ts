@@ -1,8 +1,7 @@
 import type { Locale } from './translations';
 
 export interface LandingContent {
-  titleA: string;
-  titleB: string;
+  titleLines: [string, string, string];
   text: string;
   open: string;
   how: string;
@@ -16,13 +15,18 @@ export interface LandingContent {
   compareText: string;
   columns: string[];
   rows: string[];
-  footer: { subtitle: string; contacts: string; privacy: string };
+  footer: {
+    subtitle: string;
+    contacts: string;
+    privacy: string;
+    contactsText: string;
+    close: string;
+  };
 }
 
 export const landingContent: Record<Locale, LandingContent> = {
   ru: {
-    titleA: 'Узнайте, где человек,',
-    titleB: 'за секунды',
+    titleLines: ['Узнайте,', 'где человек,', 'за секунды'],
     text: 'Пострадавший нажимает на ссылку и делится геолокацией и фото. Оператор видит его на карте в реальном времени.',
     open: 'Открыть сервис',
     how: 'Как это работает',
@@ -84,11 +88,12 @@ export const landingContent: Record<Locale, LandingContent> = {
       subtitle: 'сервис оперативной передачи геоданных',
       contacts: 'Контакты',
       privacy: 'Политика конфиденциальности',
+      contactsText: 'По всем вопросам работы сервиса пишите нам',
+      close: 'Закрыть',
     },
   },
   en: {
-    titleA: 'Know where a person is',
-    titleB: 'in seconds',
+    titleLines: ['Find out', 'where a person is', 'in seconds'],
     text: 'The caller taps a link and shares their location and photos. The operator sees them on the map in real time.',
     open: 'Open the service',
     how: 'How it works',
@@ -150,11 +155,12 @@ export const landingContent: Record<Locale, LandingContent> = {
       subtitle: 'a service for fast location sharing',
       contacts: 'Contacts',
       privacy: 'Privacy policy',
+      contactsText: 'For any questions about the service, write to us',
+      close: 'Close',
     },
   },
   kk: {
-    titleA: 'Адам қайда екенін біліңіз,',
-    titleB: 'бірнеше секундта',
+    titleLines: ['Біліңіз,', 'адам қайда,', 'бірнеше секундта'],
     text: 'Зардап шегуші сілтемені басып, геолокациясы мен фотосын жібереді. Оператор оны картада нақты уақытта көреді.',
     open: 'Қызметті ашу',
     how: 'Бұл қалай жұмыс істейді',
@@ -216,6 +222,8 @@ export const landingContent: Record<Locale, LandingContent> = {
       subtitle: 'геодеректерді жедел жіберу қызметі',
       contacts: 'Байланыс',
       privacy: 'Құпиялылық саясаты',
+      contactsText: 'Қызметке қатысты барлық сұрақтар бойынша бізге жазыңыз',
+      close: 'Жабу',
     },
   },
 };

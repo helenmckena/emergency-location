@@ -61,7 +61,11 @@ export function LandingPage() {
         <section className="lp-hero">
           <div className="lp-hero__text">
             <h1 className="lp-title">
-              {c.titleA} <span>{c.titleB}</span>
+              <span className="lp-title__line">{c.titleLines[0]}</span>
+              <span className="lp-title__line">{c.titleLines[1]}</span>
+              <span className="lp-title__line lp-title__accent">
+                {c.titleLines[2]}
+              </span>
             </h1>
 
             <p className="lp-lead">{c.text}</p>
