@@ -27,7 +27,9 @@ def get_photo_share_url(filename: str) -> str:
 
 
 def get_share_request_url(request_id: int) -> str:
-    domain = _format_base_domain(settings.server.domain)
+    domain = _format_base_domain(
+        settings.server.frontend_url or settings.server.domain
+    )
     url = f"{domain}/request/{request_id}"
     logger.debug("share_link={}", url)
     return url

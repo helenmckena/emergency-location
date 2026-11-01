@@ -11,22 +11,30 @@ class RequestWebSocketGateway(WebSocketGateway[int, Any]):
 
     def __init__(self, redis_url: str, channel: str) -> None:
         self.connections: dict[int, list[WebSocket]] = {}
-        self.redis = redis.from_url(redis_url, decode_responses=True)
-        self.pubsub = self.redis.pubsub()
+        # без Redis рассылаем сообщения напрямую в рамках одного процесса
+        self.redis = (
+            redis.from_url(redis_url, decode_responses=True) if redis_url else None
+        )
+        self.pubsub = self.redis.pubsub() if self.redis else None
         self.channel = channel
         self.listener_task: asyncio.Task | None = None
 
     async def start(self) -> None:
+        if self.redis is None or self.pubsub is None:
+            return
         await self.pubsub.subscribe(self.channel)
         self.listener_task = asyncio.create_task(self._reader())
 
     async def stop(self) -> None:
         if self.listener_task:
             self.listener_task.cancel()
+        if self.redis is None or self.pubsub is None:
+            return
         await self.pubsub.unsubscribe(self.channel)
         await self.redis.close()
 
     async def _reader(self) -> None:
+        assert self.pubsub is not None
         async for message in self.pubsub.listen():
             if message["type"] != "message":
                 continue
@@ -53,6 +61,13 @@ class RequestWebSocketGateway(WebSocketGateway[int, Any]):
             del self.connections[key]
 
     async def broadcast(self, key: int, data: dict[str, Any]) -> None:
+        if self.redis is None:
+            for websocket in list(self.connections.get(key, [])):
+                try:
+                    await websocket.send_json(data)
+                except Exception:
+                    self.disconnect(key, websocket)
+            return
         await self.redis.publish(self.channel, json.dumps({"key": key, "data": data}))
 
 

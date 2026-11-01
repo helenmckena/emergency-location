@@ -17,6 +17,13 @@ from loguru import logger
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    if settings.db.is_sqlite:
+        # локальный запуск без Postgres: таблицы создаются автоматически
+        import models  # noqa: F401
+        from db.base import Base
+
+        async with db_helper.engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
     yield
     await db_helper.dispose()
 
@@ -37,10 +44,13 @@ main_app.add_middleware(
         "http://127.0.0.1:5173",  # localVite
         "https://emergency-location.com",
         "https://www.emergency-location.com",
+        "https://emergency-geolocation.com",
+        "https://www.emergency-geolocation.com",
         "capacitor://localhost",  # iOS — Capacitor
         "http://localhost",  # Android — Capacitor
         "https://localhost",  # HTTPS-schema in Capacitor
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

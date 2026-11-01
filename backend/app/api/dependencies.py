@@ -91,8 +91,12 @@ class Dependency:
         repo = LocationShareRequestRepository(session)
         return CreateLocationShareRequestUseCase(
             repository=repo,
-            sms_service=await self._sms_service(),
-            wa_service=await self.whatsapp_service(),
+            sms_service=(
+                await self._sms_service() if settings.delivery.sms else None
+            ),
+            wa_service=(
+                await self.whatsapp_service() if settings.delivery.whatsapp else None
+            ),
         )
 
     @staticmethod

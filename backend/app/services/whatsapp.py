@@ -1,11 +1,7 @@
 from core.exceptions import WhatsAppSendError
 from core.interfaces import WhatsAppGateway
-from schemas.whatsapp import (
-    WhatsAppSendResult,
-    WhatsAppTemplate,
-    WhatsAppTemplateLanguageCode,
-)
-from core.enums import TemplateName
+from schemas.whatsapp import WhatsAppSendResult, WhatsAppTemplate
+from core.config import settings
 from asyncio import sleep
 from loguru import logger
 
@@ -20,8 +16,8 @@ class WhatsAppService:
         self, phone: str, link: str
     ) -> WhatsAppSendResult:
         template = WhatsAppTemplate(
-            name=TemplateName.LOCATION_SHARE_REQUEST,
-            language=self._get_language_code(phone=phone),
+            name=settings.whatsapp.template_name,
+            language=settings.whatsapp.template_language,
             params={"location_link": link},
         )
         return await self._send_with_retry(phone=phone, template=template)
@@ -44,6 +40,3 @@ class WhatsAppService:
                 logger.info("Error occured after retry, raising error")
                 raise
 
-    @staticmethod
-    def _get_language_code(phone: str) -> WhatsAppTemplateLanguageCode:
-        return WhatsAppTemplateLanguageCode.EN

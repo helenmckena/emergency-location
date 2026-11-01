@@ -11,14 +11,17 @@ MEDIA_ROOT.mkdir(exist_ok=True)
 
 
 class Server(BaseModel):
-    domain: str
+    # публичный адрес бэкенда (по нему отдаются фото); для локального запуска так
+    domain: str = "http://localhost:8000"
+    # адрес сайта (фронтенда): в WhatsApp уходит ссылка на него; пусто = как domain
+    frontend_url: str = ""
 
 
 class RunConfig(BaseModel):
-    host: str
-    port: int
-    reload: bool = True
-    workers: int = 4
+    host: str = "0.0.0.0"
+    port: int = 8000
+    reload: bool = False
+    workers: int = 1
 
 
 class ApiPrefix(BaseModel):
@@ -43,19 +46,28 @@ class ApiPath(BaseModel):
 
 
 class DatabaseConfig(BaseModel):
-    user: str
-    name: str
-    host: str
-    port: int
-    password_file: str
+    # Для бесплатного запуска без Docker: DB__DSN=sqlite+aiosqlite:///./local.db
+    dsn: str | None = None
 
-    echo: bool
-    echo_pool: bool
-    pool_size: int
-    max_overflow: int
+    user: str = ""
+    name: str = ""
+    host: str = ""
+    port: int = 5432
+    password_file: str = ""
+
+    echo: bool = False
+    echo_pool: bool = False
+    pool_size: int = 5
+    max_overflow: int = 10
 
     @property
-    def url(self) -> PostgresDsn:
+    def is_sqlite(self) -> bool:
+        return bool(self.dsn) and str(self.dsn).startswith("sqlite")
+
+    @property
+    def url(self) -> PostgresDsn | str:
+        if self.dsn:
+            return self.dsn
         return PostgresDsn.build(
             scheme="postgresql+asyncpg",
             username=self.user,
@@ -79,32 +91,44 @@ class LocationConfig(BaseModel):
 
 
 class SmsConfig(BaseModel):
-    sender: str
+    sender: str = ""
 
     class SmsKzConfig(BaseModel):
-        login: str
-        password: str
+        login: str = ""
+        password: str = ""
 
     class TwilioConfig(BaseModel):
-        account_sid: str
-        auth_token: str
-        from_phone: str
+        account_sid: str = ""
+        auth_token: str = ""
+        from_phone: str = ""
 
-    sms_kz: SmsKzConfig
-    twilio: TwilioConfig
+    sms_kz: SmsKzConfig = SmsKzConfig()
+    twilio: TwilioConfig = TwilioConfig()
 
 
 class WhatsAppConfig(BaseModel):
     class GraphApi(BaseModel):
         url: str = "https://graph.facebook.com/v21.0"
-        phone_number_id: str
-        access_token: str
+        phone_number_id: str = ""
+        access_token: str = ""
 
-    graph_api: GraphApi
+    graph_api: GraphApi = GraphApi()
+    # шаблон должен быть создан и одобрен в WhatsApp Manager
+    template_name: str = "share_geolocation_request"
+    template_language: str = "en"
+
+
+class DeliveryConfig(BaseModel):
+    """Платные каналы доставки ссылки. По умолчанию выключены:
+    оператор отправляет ссылку сам (Telegram, WhatsApp, SMS с телефона)."""
+
+    sms: bool = False
+    whatsapp: bool = False
 
 
 class Redis(BaseModel):
-    url: str
+    # пусто = WebSocket работает внутри одного процесса, Redis не нужен
+    url: str = ""
 
 
 class Settings(BaseSettings):
@@ -113,16 +137,17 @@ class Settings(BaseSettings):
         case_sensitive=False,
         env_nested_delimiter="__",
     )
-    server: Server
-    run: RunConfig
-    db: DatabaseConfig
+    server: Server = Server()
+    run: RunConfig = RunConfig()
+    db: DatabaseConfig = DatabaseConfig()
     phone: PhoneConfig = PhoneConfig()
     location: LocationConfig = LocationConfig()
-    sms: SmsConfig
-    whatsapp: WhatsAppConfig
+    sms: SmsConfig = SmsConfig()
+    whatsapp: WhatsAppConfig = WhatsAppConfig()
+    delivery: DeliveryConfig = DeliveryConfig()
     api_prefix: ApiPrefix = ApiPrefix()
     api_path: ApiPath = ApiPath()
-    redis: Redis
+    redis: Redis = Redis()
 
 
 settings = Settings()  # type: ignore

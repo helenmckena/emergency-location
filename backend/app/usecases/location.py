@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any
 
 from core.config import settings
@@ -17,14 +18,18 @@ from services.whatsapp import WhatsAppService
 from core.interfaces import WebSocketGateway
 
 
+# ссылки на фоновые задачи, чтобы их не удалил сборщик мусора
+_BACKGROUND_TASKS: set[asyncio.Task[None]] = set()
+
+
 class CreateLocationShareRequestUseCase:
     __slots__ = ("_repo", "_sms_service", "_wa_service")
 
     def __init__(
         self,
         repository: LocationShareRequestRepository,
-        sms_service: SmsService,
-        wa_service: WhatsAppService,
+        sms_service: SmsService | None,
+        wa_service: WhatsAppService | None,
     ):
         self._repo = repository
         self._sms_service = sms_service
@@ -37,24 +42,29 @@ class CreateLocationShareRequestUseCase:
         if last_request:
             self._check_cooldown(last_request)
 
-            if last_request.expired_at > datetime.now(tz=UTC):
+            if self._aware(last_request.expired_at) > datetime.now(tz=UTC):
                 logger.info(
                     "Previous request with id={} is still active until {}, resending sms",
                     last_request.id,
                     last_request.expired_at,
                 )
-                await self._send_notifications(last_request)
+                self._notify_in_background(last_request)
                 return last_request
 
         share_request = await self._create_share_request(phone=phone)
-        await self._send_notifications(share_request)
+        self._notify_in_background(share_request)
 
         return share_request
 
     @staticmethod
-    def _check_cooldown(last_request: LocationShareRequest) -> None:
+    def _aware(value: datetime) -> datetime:
+        # SQLite возвращает даты без часового пояса, считаем их UTC
+        return value if value.tzinfo else value.replace(tzinfo=UTC)
+
+    @classmethod
+    def _check_cooldown(cls, last_request: LocationShareRequest) -> None:
         """:raises PreviousRequestStillActive:"""
-        cooldown_until = last_request.created_at + timedelta(
+        cooldown_until = cls._aware(last_request.created_at) + timedelta(
             seconds=settings.location.next_request_wait
         )
         now = datetime.now(tz=UTC)
@@ -66,18 +76,39 @@ class CreateLocationShareRequestUseCase:
             )
             raise PreviousRequestStillActive(retry_after=(cooldown_until - now).seconds)
 
+    def _notify_in_background(self, request: LocationShareRequest) -> None:
+        """Доставка не задерживает ответ оператору (у WhatsApp есть повторная попытка)."""
+        task = asyncio.create_task(self._send_notifications(request))
+        _BACKGROUND_TASKS.add(task)
+        task.add_done_callback(_BACKGROUND_TASKS.discard)
+
     async def _send_notifications(self, request: LocationShareRequest) -> None:
+        if self._sms_service is None and self._wa_service is None:
+            logger.info("Paid delivery is off: operator shares the link manually")
+            return
+
         share_url = get_share_request_url(request.id)
 
-        sms = await self._sms_service.send_location_share_request(
-            phone=request.phone, url=share_url
-        )
-        logger.info("Request sms sent: sms_id={}", sms.message_id)
+        # Ошибка платного канала не должна ломать создание заявки
+        if self._sms_service is not None:
+            try:
+                sms = await self._sms_service.send_location_share_request(
+                    phone=request.phone, url=share_url
+                )
+                logger.info("Request sms sent: sms_id={}", sms.message_id)
+            except Exception:
+                logger.exception("SMS delivery failed")
 
-        wa_msg = await self._wa_service.send_location_share_request(
-            phone=request.phone, link=share_url
-        )
-        logger.info("Request whatsapp message sent: msg_id={}", wa_msg.message_id)
+        if self._wa_service is not None:
+            try:
+                wa_msg = await self._wa_service.send_location_share_request(
+                    phone=request.phone, link=share_url
+                )
+                logger.info(
+                    "Request whatsapp message sent: msg_id={}", wa_msg.message_id
+                )
+            except Exception:
+                logger.exception("WhatsApp delivery failed")
 
     async def _create_share_request(self, phone: str) -> LocationShareRequest:
         expired_at = datetime.now(tz=UTC) + timedelta(

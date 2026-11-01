@@ -11,8 +11,8 @@ export function OperatorPage() {
   const { t } = useLocale();
   const navigate = useNavigate();
 
-  function handleRequestCreated(id: number) {
-    navigate(`/operator/${id}`);
+  function handleRequestCreated(id: number, phone: string) {
+    navigate(`/operator/${id}`, { state: { phone } });
   }
 
   return (

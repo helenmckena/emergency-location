@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
+import {
+  useLocation as useRouterLocation,
+  useParams,
+} from 'react-router-dom';
 
 import { Header } from '../../components/layout/Header';
 import { Footer } from '../../components/layout/Footer';
@@ -28,6 +32,30 @@ export function OperatorRequestPage() {
   }>();
 
   const numericRequestId = Number(requestId);
+
+  // Номер передаётся со страницы создания заявки (после перезагрузки его нет).
+  const routerLocation = useRouterLocation();
+  const phone =
+    (routerLocation.state as { phone?: string } | null)?.phone ?? '';
+  const phoneDigits = phone.replace(/\D/g, '');
+
+  // Ссылка для пострадавшего: оператор отправляет её сам, это бесплатно.
+  const victimLink = `${window.location.origin}/request/${numericRequestId}`;
+  const shareText = `Экстренная служба. Откройте ссылку и отправьте своё местоположение: ${victimLink}`;
+  const telegramHref = phoneDigits
+    ? `https://t.me/+${phoneDigits}`
+    : `https://t.me/share/url?url=${encodeURIComponent(victimLink)}&text=${encodeURIComponent('Отправьте своё местоположение')}`;
+  const whatsappHref = `https://wa.me/${phoneDigits}?text=${encodeURIComponent(shareText)}`;
+  const smsHref = `sms:${phoneDigits ? `+${phoneDigits}` : ''}?&body=${encodeURIComponent(shareText)}`;
+
+  const [hint, setHint] = useState('');
+
+  function copyToClipboard(text: string, message: string) {
+    void navigator.clipboard
+      .writeText(text)
+      .then(() => setHint(message))
+      .catch(() => setHint(''));
+  }
 
   const [location, setLocation] =
     useState<{
@@ -164,7 +192,7 @@ export function OperatorRequestPage() {
 
           {DEMO_MODE && (
             <p className="demo-banner">
-              Демо-режим: SMS не отправляются, сервер отключён.{' '}
+              Демо-режим: данные хранятся только в этом браузере, сервер отключён.{' '}
               <a
                 href={`/request/${numericRequestId}`}
                 target="_blank"
@@ -197,6 +225,23 @@ export function OperatorRequestPage() {
             )}
           </div>
 
+          <div className="operator-request__victim">
+            <QRCodeSVG value={victimLink} size={112} />
+
+            <div>
+              <strong>Ссылка для пострадавшего</strong>
+              <p className="operator-request__victim-link">{victimLink}</p>
+              <p className="operator-request__victim-note">
+                Если сообщение не пришло, наведите камеру телефона на QR-код
+                или откройте ссылку:
+                {' '}
+                <a href={victimLink} target="_blank" rel="noreferrer">
+                  открыть
+                </a>
+              </p>
+            </div>
+          </div>
+
           <div className="operator-request__share">
             <span>
               {t.operator.shareData}
@@ -204,17 +249,23 @@ export function OperatorRequestPage() {
 
             <div className="operator-request__share-actions">
               <a
-                href="https://t.me/"
+                href={telegramHref}
                 target="_blank"
                 rel="noreferrer"
                 className="share-button share-button--telegram"
+                onClick={() =>
+                  copyToClipboard(
+                    shareText,
+                    'Сообщение со ссылкой скопировано. Вставьте его в чат Telegram и отправьте.',
+                  )
+                }
               >
                 <TelegramIcon className="share-button__icon" />
                 Telegram
               </a>
 
               <a
-                href="https://wa.me/"
+                href={whatsappHref}
                 target="_blank"
                 rel="noreferrer"
                 className="share-button share-button--whatsapp"
@@ -223,19 +274,29 @@ export function OperatorRequestPage() {
                 WhatsApp
               </a>
 
+              <a
+                href={smsHref}
+                className="share-button share-button--copy"
+              >
+                <ExternalLinkIcon className="share-button__icon" />
+                SMS
+              </a>
+
               <button
                 type="button"
                 className="share-button share-button--copy"
-                onClick={() => {
-                  void navigator.clipboard.writeText(
-                    window.location.href,
-                  );
-                }}
+                onClick={() =>
+                  copyToClipboard(victimLink, 'Ссылка для пострадавшего скопирована.')
+                }
               >
                 <ExternalLinkIcon className="share-button__icon" />
                 {t.operator.copyLink}
               </button>
             </div>
+
+            {hint && (
+              <p className="operator-request__hint">{hint}</p>
+            )}
           </div>
         </section>
 

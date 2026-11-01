@@ -11,7 +11,7 @@ class WhatsAppTemplateLanguageCode(StrEnum):
 
 class WhatsAppTemplate(BaseModel):
     name: str
-    language: WhatsAppTemplateLanguageCode
+    language: str
     params: list[str] | dict[str, str] | None = None
 
 
