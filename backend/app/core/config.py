@@ -108,7 +108,7 @@ class SmsConfig(BaseModel):
 
 class WhatsAppConfig(BaseModel):
     class GraphApi(BaseModel):
-        url: str = "https://graph.facebook.com/v21.0"
+        url: str = "https://graph.facebook.com/v23.0"
         phone_number_id: str = ""
         access_token: str = ""
 

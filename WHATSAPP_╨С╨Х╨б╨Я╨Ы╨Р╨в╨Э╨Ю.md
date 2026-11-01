@@ -16,7 +16,7 @@ Business Settings, Users, System users, Add (роль Admin), затем Generat
 ## 3. Создать шаблон сообщения
 WhatsApp Manager, Message templates, Create template:
 - категория **Utility**, название **share_geolocation_request**, язык **English**;
-- текст: `Emergency services request. Please open this link and share your location so we can help you: {{location_link}}`;
+- текст: `Emergency services request. Please open this link and share your location so that we can help you: {{location_link}} Thank you.`. Текст не должен начинаться или заканчиваться переменной, иначе Meta отклонит шаблон;
 - тип переменной **Name**, имя переменной **location_link**, в примере вставьте любую ссылку.
 
 Дождитесь статуса Approved (обычно от нескольких минут до часов). Если шаблон отклонили, перепишите текст подробнее и подайте заново.
